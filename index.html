@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Submission Vue</title>
+	<link rel="stylesheet" href="assets/css/style.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+	<header>
+		<div class="jumbotron">
+			<h1>Youtube Searcher</h1>
+		</div>
+			<nav>
+				<ul class="menu">
+					<li><a href="#">Beranda</a></li>
+				</ul>
+			</nav>
+	</header>
+	<main>
+		<div id="app">
+			<div id="content">
+				<article class="card">
+					<header>
+						<h2 class="text-grey padding-16"><i class="fa fa-youtube fa-fw margin-right xxlarge text-teal" ></i>Youtube Key Word</h2>
+					</header>
+					<label for="url">Link Source</label>
+					<input type="text" name="url" class="url" v-model="url" disabled="disabled">
+
+					<label for="keyWord">Search Word</label>
+    				<input type="text" id="keyWord" name="keyWord" class="keyWord" v-model="keyWord">
+					<!-- <button class="bersihkan" @click="bersihkan">Bersihkan</button> -->
+					<div class="mb-5 col-center">
+						
+						<button @click="ketikaPertamaDiKlik" :disabled="!pagination.first" class="pertama">
+							First
+						</button>
+						<button @click="ketikaSebelumnyaDiklik" :disabled="!pagination.prev" class="sebelumnya">
+							<< Prev
+						</button>
+						<button class="bersihkan" @click="bersihkan" style="background-color:red">Clear</button>
+						<button @click="ketikaSelanjutnyaDiklik" :disabled="!pagination.next" class="selanjutya">
+							Next >>
+						</button>
+						<button @click="ketikaTerakhirDiKlik" :disabled="!pagination.last" class="terakhir">
+							Last 
+						</button>
+					</div>
+					<h5 class="opacity"><b>Total Hasil = {{pagination.total}} / Halaman Ke = {{pagination.page}}</b></h5>
+					<div class="container">
+			          	<ul class="daftar">
+			          		<li v-for="(hasil,indeks) in daftarHasil" :key="indeks">
+			          			<h6 class="text-teal"><i class="fa fa-play fa-fw margin-right"></i>Start <span v-html="hasil.start"></span> - <span class="tag teal round"><a :href="url + '&t=' + hasil.start + 's'" target="_blank">Open Youtube</a></span></h6>
+				          		<p v-html="hasil.text"></p>
+				          		<hr>
+							</li>
+			          	</ul>
+			        </div>
+				</article>
+			</div>
+			<aside>
+				<article class="card">
+					<h2>Submission Vue</h2>
+					<p>untuk memenuhi tugas submission vue</i></b></p>
+					
+					<figure>
+				       <img src="assets/img/cat.gif" alt="" class="featured-image">
+				       <section>
+					   <h3>Info Pemilik Kucing</h3>
+					   <table>
+					      <tr>
+					         <th>Nama</th>
+					         <td>Nuresti Aurelia N</td>
+					      </tr>
+					      <tr>
+					         <th>Email</th>
+					         <td>nuresti.aurelia@gmail.com</td>
+					      </tr>
+					      <tr>
+					         <th>Status </th>
+					         <td>Single<sup>Kuadrat</sup></td>
+					      </tr>
+					      <tr>
+					         <th>Asli</th>
+					         <td>Sunda</td>
+					      </tr>
+					  </table>
+					</section>
+				   </figure>
+				</article>
+			</aside>
+		</main>
+		<footer>
+			<p><center>Youtube Searcher &#169; 2020, Pemilik Kucing</center></p>
+		</footer>
+	</div>
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="./index.js"></script>
+<script>
+	let menu = document.querySelector(".menu");
+		menu.addEventListener("mouseover", function(ev) {   
+		  ev.target.style.color = "orange";
+
+		  setTimeout(function() {
+		    ev.target.style.color = "";
+		  }, 1000);
+		}, false);
+
+
+	 new Vue({
+	 	el:'#app',
+	 	data:{
+	 		url:'https://www.youtube.com/watch?v=klnvttPfOUM',
+	 		keyWord:'',
+	 		daftarHasil:[],
+	 		pagination:{
+	 			first:null,
+	 			last:null,
+	 			prev:null,
+	 			next:null,
+	 			total:0,
+	 			page:null
+	 		}
+	 	},
+	 	computed:{
+	 		jadikanString(){
+	 			return(parameter)=>{
+	 				return JSON.stringify(parameter,null,2)
+	 			} 
+	 		},
+	 		jadikanStringDaftarHasil(){
+	 			return JSON.stringify(this.daftarHasil,null,2)
+	 		}
+	 	},
+	 	watch:{
+	 		// keyWord(keyWord){
+	 		// 	console.log(keyWord)
+	 		// }
+	 		keyWord:pDebounce(function keyWord(keyWord){
+	 			this.cari(keyWord, this.url)
+	 			//console.log(keyWord)
+	 		}, 250)
+	 	},
+	 	methods:{
+	 		async cari(keyWord, url, pagination){
+	 			try{
+	 				let urlApi=`https://cari-teks-video-api.vercel.app/api/search?q=${keyWord}&url=${encodeURIComponent(url)}`
+	 				if (pagination) {
+	 					urlApi = pagination
+	 				}
+	 				const respon = await fetch(urlApi).then(_response => {
+	 					if(_response.ok){
+	 						return _response.json()
+	 					}
+	 					return []
+	 				})
+	 				//console.log(data)
+	 				this.daftarHasil = respon.data
+	 				this.pagination.first = respon.first
+	 				this.pagination.last = respon.last
+	 				this.pagination.prev = respon.prev
+	 				this.pagination.next = respon.next
+	 				this.pagination.total = respon.total
+	 				this.pagination.page = respon.page
+
+	 			}catch(error){
+	 				// TODO : ketika error kasih ngapain
+	 			}
+	 		},
+ 			bersihkan(){
+ 				// TODO : Tambahkan kode untuk membersihkan
+ 				this.keyWord = ''
+            	this.bersihkanHasilDanpagination()
+ 			},
+ 			bersihkanHasilDanpagination(){
+ 				this.daftarHasil = []
+ 				this.pagination={
+ 					first:null,
+		 			last:null,
+		 			prev:null,
+		 			next:null,
+		 			total:0,
+		 			page:null
+ 				}
+ 			},
+ 			ketikaPertamaDiKlik(){
+ 				this.cari(this.keyWord, this.url, this.pagination.first)
+ 			},
+ 			ketikaSebelumnyaDiklik(){
+ 				// TODO : Tambah kode untuk sebelumnya
+ 				this.cari(this.keyWord, this.url, this.pagination.prev)
+ 			},
+ 			ketikaSelanjutnyaDiklik(){
+ 				// TODO : Tambah kode untuk selanjutnya
+ 				this.cari(this.keyWord, this.url, this.pagination.next)
+ 			},
+ 			ketikaTerakhirDiKlik(){
+ 				// TODO : Tambah kode untuk terakhir
+ 				this.cari(this.keyWord, this.url, this.pagination.last)
+ 			}
+ 		}
+	 })
+</script>
+</body>
+</html>
